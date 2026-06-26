@@ -176,6 +176,8 @@ Downstream: [scikit-learn#34191](https://github.com/scikit-learn/scikit-learn/is
 
 ## Reproduce the RCA experiments
 
+C reproducer for OpenBLAS upstream: [openblas_ssyrk_repro/](openblas_ssyrk_repro/)
+
 From the repo root on macOS arm64 with the `pypi-openblas` pixi environment:
 
 ```bash

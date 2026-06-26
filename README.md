@@ -37,6 +37,8 @@ wheel variants, Linux PyPI, and conda-forge BLAS/NumPy combinations.
 **Root cause analysis:** [ROOT_CAUSE.md](ROOT_CAUSE.md) — OpenBLAS `vortexm4` float32
 `SSYRK` via NumPy's `A @ A.T` fast path (not SGEMM).
 
+**OpenBLAS C reproducer:** [openblas_ssyrk_repro/](openblas_ssyrk_repro/)
+
 ## Quick start
 
 ```bash

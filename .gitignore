@@ -1,4 +1,6 @@
 .pixi/
 .uv-repro/.venv/
 .uv-repro/uv.lock
+openblas_ssyrk_repro/repro_ssyrk
+openblas_ssyrk_repro/testdata/A.bin
 __pycache__/
