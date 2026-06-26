@@ -1,0 +1,62 @@
+[workspace]
+name = "repro-pypi-numpy-openblas-float32-matmul"
+version = "0.1.0"
+channels = ["conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
+
+[feature.repro.tasks]
+repro = "python repro.py"
+
+# Host-only runner (python stdlib) for collect_results.py.
+[feature.runner.dependencies]
+python = ">=3.11,<3.14"
+
+# NumPy from PyPI wheels (bundled libscipy_openblas) — reproduces the bug.
+[feature.pypi.dependencies]
+python = ">=3.11,<3.14"
+
+[feature.pypi.pypi-dependencies]
+numpy = "*"
+
+[feature.openblas-pthreads.dependencies]
+python = ">=3.11,<3.14"
+libopenblas = { version = "*", build = "*pthreads*" }
+numpy = "*"
+
+[feature.openblas-openmp.dependencies]
+python = ">=3.11,<3.14"
+libopenblas = { version = "*", build = "*openmp*" }
+numpy = "*"
+
+[feature.newaccelerate]
+platforms = ["osx-64", "osx-arm64"]
+
+[feature.newaccelerate.system-requirements]
+macos = "13.3"
+
+[feature.newaccelerate.dependencies]
+python = ">=3.11,<3.14"
+libblas = { version = "*", build = "*newaccelerate*" }
+liblapack = { version = "*", build = "*newaccelerate*" }
+numpy = "*"
+
+[feature.mkl]
+platforms = ["linux-64", "osx-64", "win-64"]
+
+[feature.mkl.dependencies]
+python = ">=3.11,<3.14"
+libblas = { version = "*", build = "*mkl*" }
+liblapack = { version = "*", build = "*mkl*" }
+mkl = "*"
+numpy = "*"
+
+[environments]
+default = { features = ["runner"], solve-group = "runner" }
+pypi = { features = ["pypi", "repro"], solve-group = "pypi", no-default-feature = true }
+openblas-pthreads = { features = ["openblas-pthreads", "repro"], solve-group = "openblas-pthreads", no-default-feature = true }
+openblas-openmp = { features = ["openblas-openmp", "repro"], solve-group = "openblas-openmp", no-default-feature = true }
+newaccelerate = { features = ["newaccelerate", "repro"], solve-group = "newaccelerate", no-default-feature = true }
+mkl = { features = ["mkl", "repro"], solve-group = "mkl", no-default-feature = true }
+
+[tasks]
+collect = "python collect_results.py"
