@@ -15,6 +15,8 @@ RESULTS_DIR = ROOT / "results"
 # Environments declared in pixi.toml; platform filters match workspace targets.
 ALL_ENVIRONMENTS = [
     "pypi",
+    "pypi-openblas",
+    "pypi-accelerate",
     "openblas-pthreads",
     "openblas-openmp",
     "newaccelerate",
@@ -22,6 +24,9 @@ ALL_ENVIRONMENTS = [
 ]
 
 PLATFORM_FILTERS = {
+    "pypi": {"Linux", "Windows"},
+    "pypi-openblas": {"Darwin"},
+    "pypi-accelerate": {"Darwin"},
     "newaccelerate": {"Darwin"},
     "mkl": {"Linux", "Darwin", "Windows"},
 }
@@ -67,6 +72,9 @@ def compatible_environments() -> list[str]:
         # MKL environment is not defined for osx-arm64 in pixi.toml.
         if name == "mkl" and system == "Darwin" and machine in {"arm64", "aarch64"}:
             continue
+        if name in {"pypi-openblas", "pypi-accelerate"} and system == "Darwin":
+            if machine not in {"arm64", "aarch64"}:
+                continue
         envs.append(name)
     return envs
 

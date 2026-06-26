@@ -1,2 +1,4 @@
 .pixi/
+.uv-repro/.venv/
+.uv-repro/uv.lock
 __pycache__/

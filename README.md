@@ -2,33 +2,37 @@
 
 ## The bug
 
-On **NumPy installed from PyPI** (linked against bundled `libscipy_openblas64_`),
-matrix multiplication with `@` can produce **wrong results** for a float32 GEMM that
-should be well within range:
+On **macOS arm64**, the PyPI NumPy 2.5.0 wheel tagged `macosx_11_0_arm64` — which
+bundles **`libscipy_openblas64_`** from the **`scipy-openblas64`** PyPI package
+(OpenBLAS 0.3.33.112.0, ILP64 `scipy_cblas_sgemm64_`) — matrix multiplication with
+`@` can produce **wrong results** for a float32 GEMM that should be well within range:
 
 ```python
 C = A @ A.T   # A.shape == (300, 672), float32, values in [0, 1]
 ```
 
-Observed on **macOS arm64** with NumPy 2.5 + scipy-openblas 0.3.33.112.0 (not on
-Linux x86_64 with the same PyPI wheel — see [Collected results](#collected-results)):
+The sibling PyPI wheel `macosx_14_0_arm64` (linked against **Apple Accelerate**, not
+scipy-openblas) does **not** reproduce this on the same machine. On **Linux x86_64**,
+the scipy-openblas64 wheel passes all checks (see [Collected results](#collected-results)).
+
+Symptoms with the affected wheel:
 
 - **Overflow warnings** (`divide by zero encountered in matmul`, etc.)
 - **Incorrect output** — max element should be ~185.7, but `@` can return ~0,
   garbage (e.g. ~1.6×10³⁸), or NaNs; results can vary run-to-run
 - **Same operation via other paths works** — `np.einsum('ik,jk->ij', A, A)` and a
-  direct `cblas_sgemm` / `scipy_cblas_sgemm64_` call on the same array return the
-  correct answer (~185.7035)
+  direct `scipy_cblas_sgemm64_` call on the same array return the correct answer (~185.7035)
 
 **NumPy from conda-forge** (linked against `libopenblas` or Apple Accelerate, LP64
 `cblas_sgemm`) does not show this: `@` is deterministic and correct — even at the
 same NumPy version (2.5.0).
 
-The failure is in **NumPy's `@` matmul path** on the PyPI wheel stack on **macOS
-arm64**, not in the underlying OpenBLAS SGEMM kernel when called correctly through CBLAS.
+The failure is in **NumPy's `@` matmul path** when using the **scipy-openblas64**-bundled
+PyPI wheel on **macOS arm64**, not in the underlying OpenBLAS SGEMM kernel when called
+correctly through CBLAS.
 
-This repo reproduces and compares the three code paths above across PyPI and
-conda-forge BLAS/NumPy combinations.
+This repo reproduces and compares the three code paths above across both PyPI macOS
+wheel variants, Linux PyPI, and conda-forge BLAS/NumPy combinations.
 
 ## Quick start
 
@@ -36,9 +40,13 @@ conda-forge BLAS/NumPy combinations.
 cd repro_pypi_numpy_openblas_float32_matmul
 pixi install
 
-# Single environment (runs matmul, einsum, and ctypes SGEMM checks)
+# macOS arm64: both PyPI wheel variants side-by-side
+pixi run -e pypi-openblas repro      # macosx_11_0 wheel → scipy-openblas64
+pixi run -e pypi-accelerate repro    # macosx_14_0 wheel → Accelerate
+pixi run -e openblas-pthreads repro  # conda-forge baseline
+
+# Linux: generic PyPI wheel
 pixi run -e pypi repro
-pixi run -e openblas-pthreads repro
 
 # All compatible environments on this host → results/<env-name>-<os>-<arch>.json
 pixi run collect
@@ -89,10 +97,12 @@ All conda-forge stacks (openblas, Accelerate, MKL) pass on both platforms at Num
 
 ## Pixi environments
 
-| Environment | NumPy source | BLAS | `matmul` expected |
-|---|---|---|---|
-| `pypi` | PyPI wheel | bundled `libscipy_openblas` | FAIL (macOS arm64); OK (Linux x86_64) |
-| `openblas-pthreads` | conda-forge | `libopenblas` (pthreads) | OK |
+| Environment | NumPy source | BLAS | Platforms | `matmul` expected |
+|---|---|---|---|---|
+| `pypi` | PyPI wheel | bundled scipy-openblas (linux/win) | Linux, Windows | OK |
+| `pypi-openblas` | PyPI wheel (`macosx_11_0_arm64`) | bundled scipy-openblas64 | macOS arm64 | **FAIL** |
+| `pypi-accelerate` | PyPI wheel (`macosx_14_0_arm64`) | Accelerate | macOS arm64 | OK |
+| `openblas-pthreads` | conda-forge | `libopenblas` (pthreads) | all | OK |
 | `openblas-openmp` | conda-forge | `libopenblas` (openmp) | OK |
 | `newaccelerate` | conda-forge | Apple Accelerate (macOS only) | OK |
 | `mkl` | conda-forge | Intel MKL (linux-64, osx-64, win-64) | OK |
