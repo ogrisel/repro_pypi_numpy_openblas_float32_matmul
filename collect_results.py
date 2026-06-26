@@ -95,10 +95,6 @@ def run_environment(env: str) -> dict:
         # Keep this explicit for successful commands that emit malformed JSON.
         record["error"] = "invalid JSON from repro.py output"
 
-    if record["error"] is None and completed.returncode != 0:
-        # Non-zero with valid JSON usually means "reproduces" (exit 1),
-        # but preserve text output if present for visibility.
-        record["error"] = _compose_error(completed.stdout, completed.stderr)
     return record
 
 
