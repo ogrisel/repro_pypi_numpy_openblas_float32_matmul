@@ -1,0 +1,48 @@
+{
+  "environment": "openblas-openmp",
+  "error": null,
+  "exit_code": 0,
+  "host_platform": "Linux-6.17.0-23-generic-x86_64-with-glibc2.39",
+  "platform_slug": "linux-x86_64",
+  "recorded_at": "2026-06-26T16:02:50.135383+00:00",
+  "repro": {
+    "blas": {
+      "linked_library": "/home/ogrisel/code/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-openmp/lib/python3.13/site-packages/numpy/_core/../../../../libcblas.so.3",
+      "name": "blas",
+      "openblas_configuration": "unknown",
+      "umath_extension": "/home/ogrisel/code/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-openmp/lib/python3.13/site-packages/numpy/_core/_multiarray_umath.cpython-313-x86_64-linux-gnu.so",
+      "version": "3.9.0"
+    },
+    "checks": {
+      "ctypes_sgemm": {
+        "error": null,
+        "kernel_max": 185.70362854003906,
+        "library": "/home/ogrisel/code/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-openmp/lib/python3.13/site-packages/numpy/_core/../../../../libcblas.so.3",
+        "nan_count": 0,
+        "ok": true,
+        "symbol": "cblas_sgemm",
+        "warnings": []
+      },
+      "einsum": {
+        "error": null,
+        "kernel_max": 185.70364379882812,
+        "nan_count": 0,
+        "ok": true,
+        "warnings": []
+      },
+      "matmul": {
+        "error": null,
+        "kernel_max": 185.70362854003906,
+        "nan_count": 0,
+        "ok": true,
+        "warnings": []
+      }
+    },
+    "numpy_version": "2.5.0",
+    "ok": true,
+    "platform": "Linux-6.17.0-23-generic-x86_64-with-glibc2.39",
+    "python_version": "3.13.14 | packaged by conda-forge | (main, Jun 12 2026, 09:50:25) [GCC 14.3.0]",
+    "reference_kernel_max": 185.7,
+    "reproduces": false
+  }
+}
