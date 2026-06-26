@@ -1,0 +1,51 @@
+{
+  "environment": "openblas-pthreads",
+  "error": null,
+  "exit_code": 0,
+  "host_platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+  "pixi_platform": "osx-arm64-macos-15-5",
+  "platform_slug": "macos-arm64",
+  "recorded_at": "2026-06-26T21:09:46.013359+00:00",
+  "repro": {
+    "blas": {
+      "linked_library": "/Users/ogrisel/tmp/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-pthreads/lib/libopenblas.0.dylib",
+      "name": "blas",
+      "openblas_configuration": "unknown",
+      "umath_extension": "/Users/ogrisel/tmp/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-pthreads/lib/python3.13/site-packages/numpy/_core/_multiarray_umath.cpython-313-darwin.so",
+      "version": "3.9.0"
+    },
+    "checks": {
+      "ctypes_sgemm": {
+        "error": null,
+        "kernel_max": 185.70352172851562,
+        "library": "/Users/ogrisel/tmp/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-pthreads/lib/libopenblas.0.dylib",
+        "nan_count": 0,
+        "ok": true,
+        "symbol": "cblas_sgemm",
+        "warnings": []
+      },
+      "einsum": {
+        "error": null,
+        "kernel_max": 185.70364379882812,
+        "nan_count": 0,
+        "ok": true,
+        "warnings": []
+      },
+      "matmul": {
+        "error": null,
+        "kernel_max": 185.70352172851562,
+        "nan_count": 0,
+        "ok": true,
+        "warnings": []
+      }
+    },
+    "numpy_version": "2.5.0",
+    "ok": true,
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "python_version": "3.13.14 | packaged by conda-forge | (main, Jun 12 2026, 09:44:24) [Clang 19.1.7 ]",
+    "reference_kernel_max": 185.7,
+    "reproduces": false
+  },
+  "stderr": "",
+  "stdout": "{\n  \"blas\": {\n    \"linked_library\": \"/Users/ogrisel/tmp/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-pthreads/lib/libopenblas.0.dylib\",\n    \"name\": \"blas\",\n    \"openblas_configuration\": \"unknown\",\n    \"umath_extension\": \"/Users/ogrisel/tmp/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-pthreads/lib/python3.13/site-packages/numpy/_core/_multiarray_umath.cpython-313-darwin.so\",\n    \"version\": \"3.9.0\"\n  },\n  \"checks\": {\n    \"ctypes_sgemm\": {\n      \"error\": null,\n      \"kernel_max\": 185.70352172851562,\n      \"library\": \"/Users/ogrisel/tmp/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-pthreads/lib/libopenblas.0.dylib\",\n      \"nan_count\": 0,\n      \"ok\": true,\n      \"symbol\": \"cblas_sgemm\",\n      \"warnings\": []\n    },\n    \"einsum\": {\n      \"error\": null,\n      \"kernel_max\": 185.70364379882812,\n      \"nan_count\": 0,\n      \"ok\": true,\n      \"warnings\": []\n    },\n    \"matmul\": {\n      \"error\": null,\n      \"kernel_max\": 185.70352172851562,\n      \"nan_count\": 0,\n      \"ok\": true,\n      \"warnings\": []\n    }\n  },\n  \"numpy_version\": \"2.5.0\",\n  \"ok\": true,\n  \"platform\": \"macOS-26.5.1-arm64-arm-64bit-Mach-O\",\n  \"python_version\": \"3.13.14 | packaged by conda-forge | (main, Jun 12 2026, 09:44:24) [Clang 19.1.7 ]\",\n  \"reference_kernel_max\": 185.7,\n  \"reproduces\": false\n}"
+}

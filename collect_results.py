@@ -23,13 +23,11 @@ ALL_ENVIRONMENTS = [
     "mkl",
 ]
 
-PLATFORM_FILTERS = {
-    "pypi": {"Linux", "Windows"},
-    "pypi-openblas": {"Darwin"},
-    "pypi-accelerate": {"Darwin"},
-    "newaccelerate": {"Darwin"},
-    "mkl": {"Linux", "Darwin", "Windows"},
-}
+# On macOS arm64, openblas conda envs are collected for both declared platforms.
+MACOS_ARM64_OPENBLAS_PLATFORMS = [
+    "osx-arm64-macos-11-0",
+    "osx-arm64-macos-15-5",
+]
 
 
 def _try_parse_json(stdout: str) -> dict | None:
@@ -61,10 +59,20 @@ def _compose_error(stdout: str, stderr: str) -> str | None:
     return "\n".join(parts) if parts else None
 
 
-def compatible_environments() -> list[str]:
+PLATFORM_FILTERS = {
+    "pypi": {"Linux", "Windows"},
+    "pypi-openblas": {"Darwin"},
+    "pypi-accelerate": {"Darwin"},
+    "newaccelerate": {"Darwin"},
+    "mkl": {"Linux", "Darwin", "Windows"},
+}
+
+
+def compatible_runs() -> list[tuple[str, str | None]]:
+    """Return (environment, optional pixi --platform) runs for this host."""
     system = platform.system()
     machine = platform.machine().lower()
-    envs = []
+    runs: list[tuple[str, str | None]] = []
     for name in ALL_ENVIRONMENTS:
         allowed = PLATFORM_FILTERS.get(name)
         if allowed is not None and system not in allowed:
@@ -75,12 +83,23 @@ def compatible_environments() -> list[str]:
         if name in {"pypi-openblas", "pypi-accelerate"} and system == "Darwin":
             if machine not in {"arm64", "aarch64"}:
                 continue
-        envs.append(name)
-    return envs
+        if (
+            name in {"openblas-pthreads", "openblas-openmp"}
+            and system == "Darwin"
+            and machine in {"arm64", "aarch64"}
+        ):
+            for pixi_platform in MACOS_ARM64_OPENBLAS_PLATFORMS:
+                runs.append((name, pixi_platform))
+            continue
+        runs.append((name, None))
+    return runs
 
 
-def run_environment(env: str) -> dict:
-    command = ["pixi", "run", "-e", env, "python", "repro.py", "--json"]
+def run_environment(env: str, pixi_platform: str | None = None) -> dict:
+    command = ["pixi", "run", "-e", env]
+    if pixi_platform is not None:
+        command.extend(["--platform", pixi_platform])
+    command.extend(["python", "repro.py", "--json"])
     completed = subprocess.run(
         command,
         cwd=ROOT,
@@ -89,6 +108,7 @@ def run_environment(env: str) -> dict:
     )
     record: dict = {
         "environment": env,
+        "pixi_platform": pixi_platform,
         "exit_code": completed.returncode,
         "stdout": completed.stdout.strip(),
         "stderr": completed.stderr.strip(),
@@ -118,16 +138,19 @@ def platform_slug() -> str:
     return f"{system}-{machine}"
 
 
-def result_filename(env: str) -> str:
+def result_filename(env: str, pixi_platform: str | None = None) -> str:
+    if pixi_platform is not None:
+        return f"{env}-{pixi_platform}.json"
     return f"{env}-{platform_slug()}.json"
 
 
 def write_environment_result(env: str, run: dict) -> Path:
-    output_path = RESULTS_DIR / result_filename(env)
+    output_path = RESULTS_DIR / result_filename(env, run.get("pixi_platform"))
     payload = {
         "recorded_at": datetime.now(timezone.utc).isoformat(),
         "host_platform": platform.platform(),
         "platform_slug": platform_slug(),
+        "pixi_platform": run.get("pixi_platform"),
         "environment": env,
         "exit_code": run["exit_code"],
         "error": run["error"],
@@ -142,10 +165,10 @@ def write_environment_result(env: str, run: dict) -> Path:
 def main() -> int:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    environments = compatible_environments()
+    environments = compatible_runs()
     runs = []
-    for env in environments:
-        run = run_environment(env)
+    for env, pixi_platform in environments:
+        run = run_environment(env, pixi_platform)
         runs.append(run)
         output_path = write_environment_result(env, run)
         print(f"Wrote {output_path}")
@@ -163,11 +186,14 @@ def main() -> int:
         extra = ""
         checks = repro.get("checks") or {}
         matmul = checks.get("matmul") or {}
+        label = run["environment"]
+        if run.get("pixi_platform"):
+            label = f"{label} ({run['pixi_platform']})"
         if repro.get("reproduces"):
             extra = f" (matmul nan_count={matmul.get('nan_count')})"
         elif run.get("error"):
             extra = f" ({run['error']})"
-        print(f"  {run['environment']}: {status}{extra}")
+        print(f"  {label}: {status}{extra}")
 
     failing = [
         run["environment"]

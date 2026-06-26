@@ -3,8 +3,9 @@
   "error": null,
   "exit_code": 0,
   "host_platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+  "pixi_platform": null,
   "platform_slug": "macos-arm64",
-  "recorded_at": "2026-06-26T16:27:13.388264+00:00",
+  "recorded_at": "2026-06-26T21:09:46.657124+00:00",
   "repro": {
     "blas": {
       "linked_library": "/Users/ogrisel/tmp/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/newaccelerate/lib/libblas_reexport.dylib",
