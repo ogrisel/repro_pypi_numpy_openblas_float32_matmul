@@ -4,7 +4,7 @@
   "exit_code": 0,
   "host_platform": "Linux-6.17.0-23-generic-x86_64-with-glibc2.39",
   "platform_slug": "linux-x86_64",
-  "recorded_at": "2026-06-26T16:02:50.135383+00:00",
+  "recorded_at": "2026-06-26T16:12:42.148126+00:00",
   "repro": {
     "blas": {
       "linked_library": "/home/ogrisel/code/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-openmp/lib/python3.13/site-packages/numpy/_core/../../../../libcblas.so.3",
@@ -44,5 +44,7 @@
     "python_version": "3.13.14 | packaged by conda-forge | (main, Jun 12 2026, 09:50:25) [GCC 14.3.0]",
     "reference_kernel_max": 185.7,
     "reproduces": false
-  }
+  },
+  "stderr": "WARN the lock file is up-to-date but uses an older format (v6), run `pixi lock` to upgrade to v7 for improved reproducibility",
+  "stdout": "{\n  \"blas\": {\n    \"linked_library\": \"/home/ogrisel/code/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-openmp/lib/python3.13/site-packages/numpy/_core/../../../../libcblas.so.3\",\n    \"name\": \"blas\",\n    \"openblas_configuration\": \"unknown\",\n    \"umath_extension\": \"/home/ogrisel/code/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-openmp/lib/python3.13/site-packages/numpy/_core/_multiarray_umath.cpython-313-x86_64-linux-gnu.so\",\n    \"version\": \"3.9.0\"\n  },\n  \"checks\": {\n    \"ctypes_sgemm\": {\n      \"error\": null,\n      \"kernel_max\": 185.70362854003906,\n      \"library\": \"/home/ogrisel/code/repro_pypi_numpy_openblas_float32_matmul/.pixi/envs/openblas-openmp/lib/python3.13/site-packages/numpy/_core/../../../../libcblas.so.3\",\n      \"nan_count\": 0,\n      \"ok\": true,\n      \"symbol\": \"cblas_sgemm\",\n      \"warnings\": []\n    },\n    \"einsum\": {\n      \"error\": null,\n      \"kernel_max\": 185.70364379882812,\n      \"nan_count\": 0,\n      \"ok\": true,\n      \"warnings\": []\n    },\n    \"matmul\": {\n      \"error\": null,\n      \"kernel_max\": 185.70362854003906,\n      \"nan_count\": 0,\n      \"ok\": true,\n      \"warnings\": []\n    }\n  },\n  \"numpy_version\": \"2.5.0\",\n  \"ok\": true,\n  \"platform\": \"Linux-6.17.0-23-generic-x86_64-with-glibc2.39\",\n  \"python_version\": \"3.13.14 | packaged by conda-forge | (main, Jun 12 2026, 09:50:25) [GCC 14.3.0]\",\n  \"reference_kernel_max\": 185.7,\n  \"reproduces\": false\n}"
 }

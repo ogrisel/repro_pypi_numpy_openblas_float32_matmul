@@ -27,6 +27,35 @@ PLATFORM_FILTERS = {
 }
 
 
+def _try_parse_json(stdout: str) -> dict | None:
+    text = stdout.strip()
+    if not text:
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # Some runtimes prepend/append logs to stdout. Try to recover a JSON object.
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    try:
+        return json.loads(text[start : end + 1])
+    except json.JSONDecodeError:
+        return None
+
+
+def _compose_error(stdout: str, stderr: str) -> str | None:
+    parts = []
+    if stdout.strip():
+        parts.append(f"stdout: {stdout.strip()}")
+    if stderr.strip():
+        parts.append(f"stderr: {stderr.strip()}")
+    return "\n".join(parts) if parts else None
+
+
 def compatible_environments() -> list[str]:
     system = platform.system()
     machine = platform.machine().lower()
@@ -58,13 +87,18 @@ def run_environment(env: str) -> dict:
         "repro": None,
         "error": None,
     }
-    if completed.stdout.strip():
-        try:
-            record["repro"] = json.loads(completed.stdout)
-        except json.JSONDecodeError as exc:
-            record["error"] = f"invalid JSON from repro.py: {exc}"
-    elif completed.returncode != 0 and completed.stderr.strip():
-        record["error"] = completed.stderr.strip()
+    record["repro"] = _try_parse_json(completed.stdout)
+
+    if completed.returncode != 0 and record["repro"] is None:
+        record["error"] = _compose_error(completed.stdout, completed.stderr)
+    elif completed.returncode == 0 and completed.stdout.strip() and record["repro"] is None:
+        # Keep this explicit for successful commands that emit malformed JSON.
+        record["error"] = "invalid JSON from repro.py output"
+
+    if record["error"] is None and completed.returncode != 0:
+        # Non-zero with valid JSON usually means "reproduces" (exit 1),
+        # but preserve text output if present for visibility.
+        record["error"] = _compose_error(completed.stdout, completed.stderr)
     return record
 
 
@@ -93,6 +127,8 @@ def write_environment_result(env: str, run: dict) -> Path:
         "environment": env,
         "exit_code": run["exit_code"],
         "error": run["error"],
+        "stdout": run["stdout"],
+        "stderr": run["stderr"],
         "repro": run["repro"],
     }
     output_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
@@ -112,7 +148,14 @@ def main() -> int:
 
     for run in runs:
         repro = run["repro"] or {}
-        status = "OK" if not repro.get("reproduces") else "FAIL"
+        if run.get("error"):
+            status = "ERROR"
+        elif repro.get("reproduces"):
+            status = "FAIL"
+        elif run.get("repro") is None:
+            status = "ERROR"
+        else:
+            status = "OK"
         extra = ""
         checks = repro.get("checks") or {}
         matmul = checks.get("matmul") or {}
@@ -127,6 +170,11 @@ def main() -> int:
         for run in runs
         if run.get("repro") and run["repro"].get("reproduces")
     ]
+    errored = [run["environment"] for run in runs if run.get("error")]
+
+    if errored:
+        print(f"Execution errors in: {', '.join(errored)}")
+        return 2
     if failing:
         print(f"Reproduces in: {', '.join(failing)}")
         return 1

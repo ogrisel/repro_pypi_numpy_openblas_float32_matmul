@@ -1,9 +1,11 @@
 {
   "environment": "mkl",
-  "error": "invalid JSON from repro.py: Expecting value: line 1 column 1 (char 0)",
+  "error": "stdout: Intel oneMKL FATAL ERROR: Error on loading function cblas_sgemm_64.\nstderr: WARN the lock file is up-to-date but uses an older format (v6), run `pixi lock` to upgrade to v7 for improved reproducibility",
   "exit_code": 2,
   "host_platform": "Linux-6.17.0-23-generic-x86_64-with-glibc2.39",
   "platform_slug": "linux-x86_64",
-  "recorded_at": "2026-06-26T16:02:50.589683+00:00",
-  "repro": null
+  "recorded_at": "2026-06-26T16:12:42.303406+00:00",
+  "repro": null,
+  "stderr": "WARN the lock file is up-to-date but uses an older format (v6), run `pixi lock` to upgrade to v7 for improved reproducibility",
+  "stdout": "Intel oneMKL FATAL ERROR: Error on loading function cblas_sgemm_64."
 }
