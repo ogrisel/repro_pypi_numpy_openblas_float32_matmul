@@ -27,12 +27,15 @@ Symptoms with the affected wheel:
 `cblas_sgemm`) does not show this: `@` is deterministic and correct — even at the
 same NumPy version (2.5.0).
 
-The failure is in **NumPy's `@` matmul path** when using the **scipy-openblas64**-bundled
-PyPI wheel on **macOS arm64**, not in the underlying OpenBLAS SGEMM kernel when called
-correctly through CBLAS.
+The failure is in **NumPy's `@` SYRK fast path** (`cblas_ssyrk`) when using the
+**scipy-openblas64** PyPI wheel on **macOS arm64** with OpenBLAS **`vortexm4`** dispatch —
+not in SGEMM when called correctly through CBLAS. See [ROOT_CAUSE.md](ROOT_CAUSE.md).
 
 This repo reproduces and compares the three code paths above across both PyPI macOS
 wheel variants, Linux PyPI, and conda-forge BLAS/NumPy combinations.
+
+**Root cause analysis:** [ROOT_CAUSE.md](ROOT_CAUSE.md) — OpenBLAS `vortexm4` float32
+`SSYRK` via NumPy's `A @ A.T` fast path (not SGEMM).
 
 ## Quick start
 
