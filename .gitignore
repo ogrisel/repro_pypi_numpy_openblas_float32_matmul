@@ -3,4 +3,5 @@
 .uv-repro/uv.lock
 openblas_ssyrk_repro/repro_ssyrk
 openblas_ssyrk_repro/testdata/A.bin
+openblas_ssyrk_repro/.venv/
 __pycache__/

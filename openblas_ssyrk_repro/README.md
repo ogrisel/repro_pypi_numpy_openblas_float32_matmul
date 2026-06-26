@@ -22,26 +22,56 @@ Expected max element: **~185.7**.
 
 ## Build and run
 
-**Requirements:** macOS arm64, Python 3 (to generate `testdata/A.bin`), a
-`libscipy_openblas64_.dylib` (bundled in the PyPI NumPy `macosx_11_0_arm64` wheel).
+**Requirements:** macOS arm64, Python 3.13, a C compiler (`cc`).
+
+The affected OpenBLAS build is bundled in the PyPI NumPy **`macosx_11_0_arm64`**
+wheel (scipy-openblas64 0.3.33.112.0). Plain `pip install numpy==2.5.0` on macOS 14+
+installs the Accelerate wheel instead and does **not** ship this dylib.
+
+### 1. Install the OpenBLAS dylib in a venv
 
 ```bash
 cd openblas_ssyrk_repro
-make
 
-# Point at the OpenBLAS dylib from the PyPI NumPy wheel, e.g.:
+python3.13 -m venv .venv
+source .venv/bin/activate
+pip install \
+  "https://files.pythonhosted.org/packages/85/4b/953118a730ee3b35e28645e0eb4cf9beec5bdbb954e1ac2f5fcefba6bbc3/numpy-2.5.0-cp313-cp313-macosx_11_0_arm64.whl"
+
 export OPENBLAS_DYLIB="$(
-  python3 -c "import numpy, pathlib; print(next(pathlib.Path(numpy.__file__).parent.joinpath('.dylibs').glob('libscipy_openblas64_*.dylib')))"
+  .venv/bin/python -c "import numpy, pathlib; print(next(pathlib.Path(numpy.__file__).parent.joinpath('.dylibs').glob('libscipy_openblas64_*.dylib')))"
 )"
+echo "OPENBLAS_DYLIB=$OPENBLAS_DYLIB"
+```
 
+Or use `make venv` (same steps):
+
+```bash
+make venv
+source .venv/bin/activate
+export OPENBLAS_DYLIB="$(.venv/bin/python -c "import numpy, pathlib; print(next(pathlib.Path(numpy.__file__).parent.joinpath('.dylibs').glob('libscipy_openblas64_*.dylib')))")"
+```
+
+### 2. Build and run the C reproducer
+
+```bash
+make
 ./repro_ssyrk
 echo exit_code=$?
 ```
 
-Or pass paths explicitly:
+One-liner after the venv is set up:
 
 ```bash
-./repro_ssyrk testdata/A.bin /path/to/libscipy_openblas64_.dylib
+make && ./repro_ssyrk testdata/A.bin "$OPENBLAS_DYLIB"
+```
+
+If `OPENBLAS_DYLIB` is exported, `./repro_ssyrk` alone is enough.
+
+Or pass paths explicitly (no venv env var):
+
+```bash
+./repro_ssyrk testdata/A.bin .venv/lib/python3.13/site-packages/numpy/.dylibs/libscipy_openblas64_.dylib
 ```
 
 ### Expected output on Apple M4 (vortexm4 default)
@@ -67,7 +97,7 @@ OPENBLAS_CORETYPE=NEOVERSEN1 ./repro_ssyrk
 |---|---|
 | `repro_ssyrk.c` | C reproducer (dlopen SSYRK/SGEMM from scipy-openblas64) |
 | `generate_matrix.py` | Writes `testdata/A.bin` (seed 42, same as `repro.py`) |
-| `Makefile` | Build helper |
+| `Makefile` | Build helper (`make venv` installs the NumPy/OpenBLAS wheel) |
 
 ## Upstream filing
 
