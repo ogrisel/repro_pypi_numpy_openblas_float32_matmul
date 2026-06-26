@@ -170,6 +170,30 @@ def _linked_blas_library() -> Path | None:
 
 
 def _load_sgemm(lib: ctypes.CDLL) -> tuple[str, object]:
+    try:
+        fn = lib.cblas_sgemm
+    except AttributeError:
+        pass
+    else:
+        fn.argtypes = [
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_float,
+            ctypes.c_void_p,
+            ctypes.c_int,
+            ctypes.c_void_p,
+            ctypes.c_int,
+            ctypes.c_float,
+            ctypes.c_void_p,
+            ctypes.c_int,
+        ]
+        fn.restype = None
+        return "cblas_sgemm", fn
+
     for name in ("scipy_cblas_sgemm64_", "cblas_sgemm_64"):
         try:
             fn = getattr(lib, name)
@@ -194,25 +218,7 @@ def _load_sgemm(lib: ctypes.CDLL) -> tuple[str, object]:
         fn.restype = None
         return name, fn
 
-    fn = lib.cblas_sgemm
-    fn.argtypes = [
-        ctypes.c_int,
-        ctypes.c_int,
-        ctypes.c_int,
-        ctypes.c_int,
-        ctypes.c_int,
-        ctypes.c_int,
-        ctypes.c_float,
-        ctypes.c_void_p,
-        ctypes.c_int,
-        ctypes.c_void_p,
-        ctypes.c_int,
-        ctypes.c_float,
-        ctypes.c_void_p,
-        ctypes.c_int,
-    ]
-    fn.restype = None
-    return "cblas_sgemm", fn
+    raise AttributeError("No supported SGEMM symbol found in BLAS library")
 
 
 def check_ctypes_sgemm(basis: np.ndarray) -> dict:
